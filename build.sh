@@ -11,6 +11,6 @@ echo "🗄️ Running database migrations..."
 python manage.py migrate --noinput
 
 echo "🌱 Seeding demo data..."
-python manage.py seed_data
+python manage.py seed_quiz_data_gtv_ont
 
 echo "✅ Build tasks completed!"

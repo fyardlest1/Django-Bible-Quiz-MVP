@@ -116,3 +116,7 @@ class Command(BaseCommand):
         LeaderboardEntry.objects.create(name='Top Learner', high_score=100)
         LeaderboardEntry.objects.create(name='Scripture Guru', high_score=95)
         self.stdout.write(self.style.SUCCESS(f'Seeded Leaderboard Entries.'))
+
+
+# to run:
+# py manage.py seed_data
