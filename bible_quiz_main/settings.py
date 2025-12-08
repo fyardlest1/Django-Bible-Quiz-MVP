@@ -27,7 +27,7 @@ SECRET_KEY = config('SECRET_KEY', default='django-insecure-fallback-key-for-dev'
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = config('DEBUG', default=False, cast=bool)
 
-ALLOWED_HOSTS = config('ALLOWED_HOSTS', default='127.0.0.1,localhost', cast=Csv())
+ALLOWED_HOSTS = config('ALLOWED_HOSTS', "*", cast=Csv())
 
 
 # Application definition
@@ -91,13 +91,6 @@ WSGI_APPLICATION = 'bible_quiz_main.wsgi.application'
 # LOGIC: If DB_NAME is set in .env, use Postgres. Otherwise, fallback to SQLite.
 # This makes switching from MVP to Production seamless.
 
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
-    }
-}
-        
 
 # Database Configuration
 # If DATABASE_URL is present (Production), use it. Otherwise SQLite (Local).
