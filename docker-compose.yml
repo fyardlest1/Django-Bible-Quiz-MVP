@@ -1,0 +1,19 @@
+
+services:
+  web:
+    build: .
+    # This maps your computer's port 8000 to the container's port 8000
+    ports:
+      - "8000:8000"
+    # This maps your code folder to the container
+    # Changes you make in your IDE will instantly reflect in the container
+    volumes:
+      - .:/app
+    # Load environment variables
+    env_file:
+      - .env
+    command: >
+      sh -c "python manage.py migrate &&
+            python manage.py runserver 0.0.0.0:8000"
+
+

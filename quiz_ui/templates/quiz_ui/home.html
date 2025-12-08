@@ -1,0 +1,67 @@
+{% extends 'quiz_ui/base.html' %}
+
+{% block content %}
+<div class="max-w-md mx-auto space-y-6">
+    
+    <!-- Hero Section -->
+    <div class="bg-white p-6 rounded-xl shadow-md text-center">
+        <h1 class="text-2xl font-bold text-indigo-700 mb-2">Verse of the Day Quiz</h1>
+        <p class="text-gray-600 mb-6">Test your knowledge and keep your streak alive!</p>
+        
+        <a href="{% url 'quiz_ui:play' %}" 
+           class="block w-full py-4 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-lg shadow transition transform hover:scale-105">
+            <i class="fa-solid fa-play mr-2"></i> Play Daily Quiz
+        </a>
+    </div>
+
+    <!-- Stats Card -->
+    <div class="bg-white p-6 rounded-xl shadow-md">
+        <h2 class="text-lg font-bold text-gray-700 mb-4 border-b pb-2">Your Progress</h2>
+        
+        <div id="loading-stats" class="text-center py-4 text-gray-500">Loading stats...</div>
+        
+        <div id="stats-content" class="hidden grid grid-cols-2 gap-4 text-center">
+            <div class="p-3 bg-blue-50 rounded-lg">
+                <div class="text-2xl font-bold text-blue-600" id="stat-streak">0</div>
+                <div class="text-xs text-gray-500 uppercase">Day Streak</div>
+            </div>
+            <div class="p-3 bg-green-50 rounded-lg">
+                <div class="text-2xl font-bold text-green-600" id="stat-score">0</div>
+                <div class="text-xs text-gray-500 uppercase">Total Score</div>
+            </div>
+            <div class="p-3 bg-purple-50 rounded-lg col-span-2">
+                <div class="text-xl font-bold text-purple-600" id="stat-quizzes">0</div>
+                <div class="text-xs text-gray-500 uppercase">Quizzes Completed</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Leaderboard Link -->
+    <a href="{% url 'quiz_ui:leaderboard' %}" 
+        class="block text-center py-3 bg-white border border-gray-300 text-gray-600 font-semibold rounded-lg hover:bg-gray-50">
+        <i class="fa-solid fa-trophy text-yellow-500 mr-2"></i> View Leaderboard
+    </a>
+
+</div>
+
+<script>
+    async function loadStats() {
+        const deviceId = getDeviceId();
+        try {
+            const response = await fetch(`/api/stats/?device_id=${deviceId}`);
+            if (!response.ok) throw new Error("No stats yet");
+            const data = await response.json();
+
+            document.getElementById('stat-streak').innerText = data.current_streak || 0;
+            document.getElementById('stat-score').innerText = data.total_score || 0;
+            document.getElementById('stat-quizzes').innerText = data.total_quizzes || 0;
+
+            document.getElementById('loading-stats').classList.add('hidden');
+            document.getElementById('stats-content').classList.remove('hidden');
+        } catch (e) {
+            document.getElementById('loading-stats').innerText = "Play your first quiz to see stats!";
+        }
+    }
+    loadStats();
+</script>
+{% endblock %}

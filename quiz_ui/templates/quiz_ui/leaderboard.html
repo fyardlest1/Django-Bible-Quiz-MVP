@@ -1,0 +1,54 @@
+{% extends 'quiz_ui/base.html' %}
+
+{% block content %}
+<div class="max-w-2xl mx-auto">
+    <div class="flex items-center justify-between mb-6">
+        <h1 class="text-2xl font-bold text-gray-800"><i class="fa-solid fa-crown text-yellow-500"></i> Leaderboard</h1>
+        <a href="{% url 'quiz_ui:home' %}" class="text-indigo-600 hover:underline">Back to Home</a>
+    </div>
+
+    <div class="bg-white shadow-md rounded-xl overflow-hidden">
+        <table class="min-w-full divide-y divide-gray-200">
+            <thead class="bg-gray-50">
+                <tr>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Rank</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">User</th>
+                    <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Score</th>
+                </tr>
+            </thead>
+            <tbody id="leaderboard-body" class="bg-white divide-y divide-gray-200">
+                <!-- Rows injected via JS -->
+            </tbody>
+        </table>
+        <div id="loading-lb" class="text-center py-8 text-gray-500">Loading rankings...</div>
+    </div>
+</div>
+
+<script>
+    async function loadLeaderboard() {
+        const response = await fetch('/api/leaderboard/');
+        const data = await response.json();
+        
+        const tbody = document.getElementById('leaderboard-body');
+        document.getElementById('loading-lb').classList.add('hidden');
+        
+        data.forEach((entry, index) => {
+            const tr = document.createElement('tr');
+            // Highlight current user if ID matches (simple contains check for masked ID)
+            const deviceId = getDeviceId().substring(0, 6);
+            const isMe = entry.name.includes(deviceId);
+            if(isMe) tr.classList.add('bg-yellow-50');
+
+            tr.innerHTML = `
+                <td class="px-6 py-4 whitespace-nowrap text-gray-500 font-bold">#${index + 1}</td>
+                <td class="px-6 py-4 whitespace-nowrap text-gray-900 font-medium">
+                    ${entry.name} ${isMe ? '(You)' : ''}
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap text-right text-indigo-600 font-bold">${entry.high_score}</td>
+            `;
+            tbody.appendChild(tr);
+        });
+    }
+    loadLeaderboard();
+</script>
+{% endblock %}

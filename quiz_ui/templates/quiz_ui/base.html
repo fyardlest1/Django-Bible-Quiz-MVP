@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bible Quiz MVP</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" />
+    <script>
+        // GLOBAL DEVICE ID MANAGEMENT
+        // This simulates a "login" by generating a persistent ID for this browser.
+        function getDeviceId() {
+            let id = localStorage.getItem('device_id');
+            if (!id) {
+                id = 'user_' + Math.random().toString(36).substr(2, 9);
+                localStorage.setItem('device_id', id);
+            }
+            return id;
+        }
+        
+        // Simple User Display
+        document.addEventListener("DOMContentLoaded", () => {
+            const idDisplay = document.getElementById('user-id-display');
+            if(idDisplay) idDisplay.innerText = getDeviceId();
+        });
+    </script>
+</head>
+<body class="bg-gray-100 text-gray-800 font-sans min-h-screen flex flex-col">
+
+    <!-- Navbar -->
+    <nav class="bg-indigo-600 text-white shadow-lg">
+        <div class="container mx-auto px-4 py-3 flex justify-between items-center">
+            <a href="{% url 'quiz_ui:home' %}" class="font-bold text-xl flex items-center gap-2">
+                <i class="fa-solid fa-book-bible"></i> Scripture Quiz
+            </a>
+            <div class="text-sm opacity-80">
+                Player ID: <span id="user-id-display" class="font-mono bg-indigo-700 px-2 py-1 rounded">...</span>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="flex-grow container mx-auto px-4 py-6">
+        {% block content %}{% endblock %}
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-gray-800 text-gray-400 py-4 text-center text-sm">
+        <p>&copy; 2024 Bible Quiz MVP | Demo Version</p>
+    </footer>
+
+</body>
+</html>
