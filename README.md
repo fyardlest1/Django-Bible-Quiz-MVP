@@ -51,7 +51,7 @@ Follow these steps to run the project manually on your machine.
 1. Clone & Setup
 
 # Clone the repository
-git clone [https://github.com/your-username/bible-quiz-mvp.git](https://github.com/your-username/bible-quiz-mvp.git)
+git clone [https://github.com/your-username/bible-quiz-mvp.git](https://github.com/fyardlest1/Django-Bible-Quiz-MVP)
 cd bible-quiz-mvp
 
 # Create a virtual environment
