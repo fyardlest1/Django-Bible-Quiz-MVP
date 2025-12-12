@@ -39,11 +39,13 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    # third-party app
+    
+    # Third-party apps
     'rest_framework',
     'corsheaders',       # Step 1: CORS
     'drf_spectacular',   # Step 2: Documentatio
-    # local app
+    
+    # local apps
     'quiz_api',
     'quiz_ui',
 ]
@@ -55,7 +57,7 @@ MIDDLEWARE = [
     # CorsMiddleware should be placed as high as possible, 
     # definitely before CommonMiddleware
     'django.middleware.security.SecurityMiddleware',
-    'whitenoise.middleware.WhiteNoiseMiddleware', # <--- ADD THIS for Render deploy
+    'whitenoise.middleware.WhiteNoiseMiddleware', # <--- ADD THIS for Render deploy / Production Static Files
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -95,6 +97,7 @@ WSGI_APPLICATION = 'bible_quiz_main.wsgi.application'
 # Database Configuration
 # If DATABASE_URL is present (Production), use it. Otherwise SQLite (Local).
 import dj_database_url
+# Auto-switch between SQLite (Local) and Postgres (Production)
 DATABASE_URL = config('DATABASE_URL', default=None)
 
 if DATABASE_URL:
@@ -106,12 +109,25 @@ if DATABASE_URL:
         )
     }
 else:
-    DATABASES = {
-        'default': {
-            'ENGINE': 'django.db.backends.sqlite3',
-            'NAME': BASE_DIR / 'db.sqlite3',
+    DB_NAME = config('DB_NAME', default=None)
+    if DB_NAME:
+        DATABASES = {
+            'default': {
+                'ENGINE': 'django.db.backends.postgresql',
+                'NAME': DB_NAME,
+                'USER': config('DB_USER'),
+                'PASSWORD': config('DB_PASSWORD'),
+                'HOST': config('DB_HOST'),
+                'PORT': config('DB_PORT'),
+            }
         }
-    }
+    else:
+        DATABASES = {
+            'default': {
+                'ENGINE': 'django.db.backends.sqlite3',
+                'NAME': BASE_DIR / 'db.sqlite3',
+            }
+        }
 
 
 # Caching for the Daily Quiz (REQUIRED for MVP core functionality)
@@ -163,21 +179,63 @@ STATIC_URL = 'static/'
 STATIC_ROOT = BASE_DIR / 'staticfiles'
 STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
-# CORS CONFIGURATION
+
+# ==========================================
+#        NEW CONFIGURATIONS START HERE
+# ==========================================
+
+# --- 1. CELERY SETTINGS (Task Queue) ---
+# Defaults to localhost Redis for dev, uses env var for prod
+CELERY_BROKER_URL = config('CELERY_BROKER_URL', default='redis://localhost:6379/0')
+CELERY_RESULT_BACKEND = config('CELERY_BROKER_URL', default='redis://localhost:6379/0')
+CELERY_ACCEPT_CONTENT = ['json']
+CELERY_TASK_SERIALIZER = 'json'
+CELERY_TIMEZONE = 'UTC'
+
+# --- 2. EMAIL SETTINGS ---
+# Default to 'Console' backend for development (prints email to terminal)
+# Change this in .env to 'django.core.mail.backends.smtp.EmailBackend' for production
+EMAIL_BACKEND = config('EMAIL_BACKEND', default='django.core.mail.backends.console.EmailBackend')
+
+# SMTP Configuration (Loaded from .env if provided)
+EMAIL_HOST = config('EMAIL_HOST', default='smtp.gmail.com')
+EMAIL_PORT = config('EMAIL_PORT', default=587, cast=int)
+EMAIL_USE_TLS = config('EMAIL_USE_TLS', default=True, cast=bool)
+EMAIL_HOST_USER = config('EMAIL_HOST_USER', default='')
+EMAIL_HOST_PASSWORD = config('EMAIL_HOST_PASSWORD', default='')
+DEFAULT_FROM_EMAIL = config('DEFAULT_FROM_EMAIL', default='Bible Quiz App <noreply@biblequizapp.com>')
+
+# --- 3. DRF CONFIGURATION (Throttling) ---
+REST_FRAMEWORK = {
+    'DEFAULT_SCHEMA_CLASS': 'drf_spectacular.openapi.AutoSchema',
+    
+    # Throttling classes to prevent spam on the Subscribe endpoint
+    'DEFAULT_THROTTLE_CLASSES': [
+        'rest_framework.throttling.AnonRateThrottle',
+        'rest_framework.throttling.UserRateThrottle',
+        'rest_framework.throttling.ScopedRateThrottle', # <--- Required for 'subscribe' scope
+    ],
+    'DEFAULT_THROTTLE_RATES': {
+        'anon': '100/day',
+        'user': '1000/day',
+        'subscribe': '5/minute', # <--- Strict limit for email subscriptions
+    }
+}
+
+# --- 4. CORS CONFIGURATION ---
 # For this MVP, we will allow all origins. 
 # In a real production environment, you would list specific domains here.
 CORS_ALLOW_ALL_ORIGINS = True
 
-# REST FRAMEWORK CONFIGURATION
-REST_FRAMEWORK = {
-    'DEFAULT_SCHEMA_CLASS': 'drf_spectacular.openapi.AutoSchema',
-}
 
 # DOCUMENTATION CONFIGURATION
-# Swagger Docs Configuration
+# --- 5. SWAGGER SETTINGS ---
 SPECTACULAR_SETTINGS = {
     'TITLE': 'Bible Quiz API',
     'DESCRIPTION': 'Daily scripture quizzes, streaks, and community leaderboards.',
     'VERSION': '1.0.0',
     'SERVE_INCLUDE_SCHEMA': False,
 }
+
+
+
