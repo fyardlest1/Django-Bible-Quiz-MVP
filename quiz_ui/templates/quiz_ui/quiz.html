@@ -47,12 +47,63 @@
         <h2 class="text-3xl font-bold text-gray-800">Quiz Complete!</h2>
         <p class="text-gray-600 mt-2">You scored <span id="final-score" class="font-bold text-indigo-600 text-xl">0</span> out of <span id="final-total">0</span></p>
         
-        <div class="mt-8 flex gap-4 justify-center">
+        <!-- Detailed Results Table -->
+        <div class="mt-8 mb-8 overflow-x-auto text-left">
+            <table class="w-full border-collapse">
+                <thead>
+                    <tr class="bg-gray-50 border-b border-gray-200">
+                        <th class="px-4 py-2 text-sm font-semibold text-gray-600">Scripture / Question</th>
+                        <th class="px-4 py-2 text-sm font-semibold text-gray-600">Your Answer</th>
+                        <th class="px-4 py-2 text-sm font-semibold text-gray-600">Read Bible Ref.</th>
+                    </tr>
+                </thead>
+                <tbody id="results-table-body" class="text-sm divide-y divide-gray-100">
+                    <!-- Rows will be injected here -->
+                </tbody>
+            </table>
+        </div>
+
+        <div class="flex gap-4 justify-center">
             <a href="{% url 'quiz_ui:home' %}" class="bg-gray-200 text-gray-700 px-6 py-2 rounded hover:bg-gray-300">Home</a>
             <a href="{% url 'quiz_ui:leaderboard' %}" class="bg-indigo-600 text-white px-6 py-2 rounded hover:bg-indigo-700">Leaderboard</a>
         </div>
     </div>
 
+</div>
+
+<!-- LEAD CAPTURE MODAL (Funnel Step 3) -->
+<div id="email-modal" class="hidden fixed inset-0 bg-gray-900 bg-opacity-60 overflow-y-auto h-full w-full z-50 flex items-center justify-center backdrop-blur-sm">
+    <div class="bg-white p-8 rounded-xl shadow-2xl max-w-md w-full mx-4 relative transform transition-all scale-100">
+        <!-- Close Button -->
+        <button onclick="closeModal()" class="absolute top-4 right-4 text-gray-400 hover:text-gray-600">
+            <i class="fa-solid fa-xmark text-xl"></i>
+        </button>
+        
+        <div class="text-center">
+            <div class="mx-auto flex items-center justify-center h-16 w-16 rounded-full bg-orange-100 mb-4">
+                <i class="fa-solid fa-fire text-3xl text-orange-600"></i>
+            </div>
+            
+            <h3 class="text-2xl font-bold text-gray-800 mb-2">Great score!</h3>
+            
+            <p class="text-gray-600 mb-6 text-sm leading-relaxed">
+                Enter your email to save your <strong>Streak</strong> permanently and get a daily reminder so you never miss a day.
+            </p>
+            
+            <div class="space-y-3">
+                <input type="email" id="user-email" placeholder="name@example.com" 
+                       class="w-full px-4 py-3 rounded-lg border border-gray-300 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 outline-none transition">
+                
+                <button onclick="saveEmail()" class="w-full bg-indigo-600 text-white font-bold py-3 rounded-lg hover:bg-indigo-700 transition shadow-md">
+                    Save My Streak
+                </button>
+            </div>
+            
+            <button onclick="closeModal()" class="mt-4 text-xs text-gray-400 hover:text-gray-600 hover:underline">
+                No thanks, I'll play as guest
+            </button>
+        </div>
+    </div>
 </div>
 
 <script>
@@ -63,7 +114,11 @@
 
     async function initQuiz() {
         try {
-            const response = await fetch('/api/daily-quiz/');
+            // Check for force refresh
+            const urlParams = new URLSearchParams(window.location.search);
+            const refresh = urlParams.get('refresh') === 'true' ? '?refresh=true' : '';
+            
+            const response = await fetch(`/api/daily-quiz/${refresh}`);
             questions = await response.json();
             
             if (questions.error) throw new Error(questions.error);
@@ -116,15 +171,8 @@
             selected_answer: answer
         });
 
-        // Simulate "Next" delay or show explanation if you had them client-side
-        // For MVP, we just move to next step after a tiny delay
         setTimeout(() => {
-             // In a real app with "Instant Explanation", we would submit individually or reveal here.
-             // Since our API grades in bulk or returns explanation on submission, 
-             // we will just move next for simplicity in this MVP flow, 
-             // OR we could do a single-question check if we refactored the API.
-             // Let's stick to bulk submission at the end for the "Daily Quiz" feel.
-             nextQuestion();
+            nextQuestion();
         }, 500);
     }
 
@@ -156,14 +204,74 @@
             
             const result = await response.json();
             
-            // Show Results
+            // Populate Results Table
+            const tbody = document.getElementById('results-table-body');
+            tbody.innerHTML = '';
+
+            result.results.forEach(res => {
+                const originalQ = questions.find(q => q.id === res.question_id);
+                const questionText = originalQ ? originalQ.question_text : 'Unknown Question';
+                const rowClass = res.is_correct ? 'bg-green-50' : 'bg-red-50';
+                const icon = res.is_correct 
+                    ? '<i class="fa-solid fa-check text-green-600 ml-2"></i>' 
+                    : '<i class="fa-solid fa-xmark text-red-600 ml-2"></i>';
+                const answerColor = res.is_correct ? 'text-green-700' : 'text-red-700';
+
+                const tr = document.createElement('tr');
+                tr.className = "border-b border-gray-100";
+                
+                tr.innerHTML = `
+                    <td class="px-4 py-3 text-gray-700 font-medium">
+                        ${questionText.substring(0, 60)}${questionText.length > 60 ? '...' : ''}
+                    </td>
+                    <td class="px-4 py-3 ${answerColor} font-bold whitespace-nowrap">
+                        ${res.selected_answer} ${icon}
+                    </td>
+                    <td class="px-4 py-3 text-gray-600 text-xs italic">
+                        ${res.correct_answer}
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+
+            // Show Results Container
             document.getElementById('loading').classList.add('hidden');
             document.getElementById('results-container').classList.remove('hidden');
             document.getElementById('final-score').innerText = result.score;
             document.getElementById('final-total').innerText = result.total_questions;
+            
+            // TRIGGER LEAD CAPTURE MODAL
+            // We wait 1.5 seconds to let the user see their score first
+            setTimeout(() => {
+                const hasSavedEmail = localStorage.getItem('email_saved');
+                if (!hasSavedEmail) {
+                    document.getElementById('email-modal').classList.remove('hidden');
+                }
+            }, 1500);
 
         } catch (e) {
-            alert("Error submitting quiz");
+            console.error(e);
+            alert("Error submitting quiz: " + e.message);
+            document.getElementById('loading').classList.add('hidden');
+            document.getElementById('quiz-container').classList.remove('hidden');
+        }
+    }
+
+    // Modal Logic
+    function closeModal() {
+        document.getElementById('email-modal').classList.add('hidden');
+    }
+
+    function saveEmail() {
+        const email = document.getElementById('user-email').value;
+        if(email && email.includes('@')) {
+            // For MVP, we simply save to localStorage to suppress the modal next time.
+            // In V2, you would POST this to an /api/subscribe/ endpoint.
+            localStorage.setItem('email_saved', 'true');
+            alert(`Thanks! Streak saved to ${email}.`);
+            closeModal();
+        } else {
+            alert("Please enter a valid email address.");
         }
     }
 
