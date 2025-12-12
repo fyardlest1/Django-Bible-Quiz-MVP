@@ -6,7 +6,8 @@ from .views import (
     QuizPackQuestionsView,
     UserStatsView,
     RecentAttemptsView, 
-    LeaderboardView
+    LeaderboardView,
+    SubscribeView # Import the new view
 )
 
 urlpatterns = [
@@ -24,4 +25,7 @@ urlpatterns = [
     
     # Feature 5: Leaderboard
     path('leaderboard/', LeaderboardView.as_view(), name='leaderboard-list'),
+    
+    # Feature 6: Daily Email Reminders
+    path('subscribe/', SubscribeView.as_view(), name='subscribe'),
 ]

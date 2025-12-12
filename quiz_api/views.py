@@ -16,7 +16,8 @@ from .serializers import (
     QuizAttemptSerializer,
     CategorySerializer, 
     LeaderboardEntrySerializer,
-    UserStatsSerializer
+    UserStatsSerializer,
+    SubscriberSerializer,
 )
 
 # --- Pagination Configuration ---
