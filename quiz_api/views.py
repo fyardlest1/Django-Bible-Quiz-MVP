@@ -2,9 +2,10 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status, generics, pagination
 from rest_framework.exceptions import NotFound
+from rest_framework.throttling import ScopedRateThrottle # Import for throttling
 from django.utils.text import slugify
 from django.utils import timezone
-from datetime import timedelta 
+from datetime import timedelta
 from django.db.models import Avg, Sum, Count
 from django.core.cache import cache
 
@@ -39,7 +40,7 @@ class DailyQuizView(APIView):
 
         try:
             if Question.objects.count() < self.QUIZ_SIZE:
-                 return Response({"error": "Not enough questions in database."}, 
+                return Response({"error": "Not enough questions in database."}, 
                             status=status.HTTP_500_INTERNAL_SERVER_ERROR)
             random_questions = Question.objects.all().order_by('?')[:self.QUIZ_SIZE]
         except Exception:
@@ -237,3 +238,25 @@ class LeaderboardView(APIView):
             })
             
         return Response(results)
+
+# --- Feature: Daily Email Reminders ---
+
+class SubscribeView(APIView):
+    """
+    POST /api/subscribe/
+    Opt-in for daily email reminders.
+    Protected by rate limiting (throttle) to prevent spam abuse.
+    """
+    throttle_classes = [ScopedRateThrottle]
+    throttle_scope = 'subscribe'
+
+    def post(self, request):
+        serializer = SubscriberSerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(
+                {"message": "Successfully subscribed to daily reminders!"},
+                status=status.HTTP_201_CREATED
+            )
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+

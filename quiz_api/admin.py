@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import Question, Category, QuizAttempt, LeaderboardEntry
+from .models import Question, Category, QuizAttempt, LeaderboardEntry, DailyReminderSubscriber
 
 
 @admin.register(Question)
@@ -35,3 +35,21 @@ class QuizAttemptAdmin(admin.ModelAdmin):
 class LeaderboardEntryAdmin(admin.ModelAdmin):
     list_display = ('name', 'high_score', 'last_updated')
     ordering = ('-high_score',)
+
+# --- NEW: Daily Reminder Subscriber Admin ---
+
+@admin.register(DailyReminderSubscriber)
+class DailyReminderSubscriberAdmin(admin.ModelAdmin):
+    list_display = ('email', 'is_active', 'created_at', 'last_sent_at')
+    list_filter = ('is_active', 'created_at')
+    search_fields = ('email',)
+    actions = ['activate_subscribers', 'deactivate_subscribers']
+
+    @admin.action(description='Activate selected subscribers')
+    def activate_subscribers(self, request, queryset):
+        queryset.update(is_active=True)
+
+    @admin.action(description='Deactivate selected subscribers')
+    def deactivate_subscribers(self, request, queryset):
+        queryset.update(is_active=False)
+

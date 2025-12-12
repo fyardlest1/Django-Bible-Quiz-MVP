@@ -24,6 +24,7 @@ class Category(models.Model):
 class Question(models.Model):
     """
     The core question model.
+    Includes the explanation field for Feature 4 (Instant Learning).
     """
     question_text = models.TextField()
     # Storing choices as a simple JSON/Text field for MVP simplicity
@@ -85,3 +86,19 @@ class LeaderboardEntry(models.Model):
     
     def __str__(self):
         return f"{self.name} - Score: {self.high_score}"
+
+# --- NEW: Daily Reminder System ---
+
+class DailyReminderSubscriber(models.Model):
+    """
+    Stores users who opted-in for daily email reminders.
+    """
+    email = models.EmailField(unique=True, help_text="User's email address for reminders.")
+    created_at = models.DateTimeField(auto_now_add=True)
+    last_sent_at = models.DateTimeField(null=True, blank=True)
+    is_active = models.BooleanField(default=True, help_text="Uncheck to stop sending emails to this user.")
+
+    def __str__(self):
+        status = "Active" if self.is_active else "Inactive"
+        return f"{self.email} ({status})"
+

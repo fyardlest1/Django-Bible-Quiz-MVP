@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import Question, QuizAttempt, Category, LeaderboardEntry
+from .models import Question, QuizAttempt, Category, LeaderboardEntry, DailyReminderSubscriber
 
 # --- Core MVP Serializers ---
 
@@ -78,3 +78,25 @@ class LeaderboardEntrySerializer(serializers.ModelSerializer):
     class Meta:
         model = LeaderboardEntry
         fields = '__all__'
+
+# --- NEW: Subscriber Serializer for Daily Reminders ---
+
+class SubscriberSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = DailyReminderSubscriber
+        fields = ['email']
+
+    def create(self, validated_data):
+        """
+        Custom create method to handle re-subscription logic.
+        If email exists but is inactive, reactivate it instead of crashing.
+        """
+        email = validated_data['email']
+        subscriber, created = DailyReminderSubscriber.objects.get_or_create(email=email)
+        
+        # If the user existed but unsubscribed previously, reactivate them
+        if not created and not subscriber.is_active:
+            subscriber.is_active = True
+            subscriber.save()
+            
+        return subscriber
