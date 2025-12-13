@@ -172,7 +172,7 @@
         });
 
         setTimeout(() => {
-            nextQuestion();
+             nextQuestion();
         }, 500);
     }
 
@@ -240,11 +240,16 @@
             document.getElementById('final-score').innerText = result.score;
             document.getElementById('final-total').innerText = result.total_questions;
             
-            // TRIGGER LEAD CAPTURE MODAL
-            // We wait 1.5 seconds to let the user see their score first
+            // TRIGGER LEAD CAPTURE MODAL LOGIC
+            // Calculate Score Percentage
+            const percentage = (result.score / result.total_questions) * 100;
+            
+            // Wait 1.5 seconds, then check logic
             setTimeout(() => {
                 const hasSavedEmail = localStorage.getItem('email_saved');
-                if (!hasSavedEmail) {
+                
+                // Condition: Not already subscribed AND Score >= 60%
+                if (!hasSavedEmail && percentage >= 60) {
                     document.getElementById('email-modal').classList.remove('hidden');
                 }
             }, 1500);
@@ -262,14 +267,31 @@
         document.getElementById('email-modal').classList.add('hidden');
     }
 
-    function saveEmail() {
+    async function saveEmail() {
         const email = document.getElementById('user-email').value;
         if(email && email.includes('@')) {
-            // For MVP, we simply save to localStorage to suppress the modal next time.
-            // In V2, you would POST this to an /api/subscribe/ endpoint.
-            localStorage.setItem('email_saved', 'true');
-            alert(`Thanks! Streak saved to ${email}.`);
-            closeModal();
+            try {
+                // Call API to subscribe
+                const response = await fetch('/api/subscribe/', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': getCookie('csrftoken')
+                    },
+                    body: JSON.stringify({ email: email })
+                });
+
+                if (response.ok) {
+                    localStorage.setItem('email_saved', 'true');
+                    alert(`Thanks! Streak saved to ${email}.`);
+                    closeModal();
+                } else {
+                    const data = await response.json();
+                    alert("Error: " + (data.email ? data.email[0] : "Subscription failed."));
+                }
+            } catch (e) {
+                alert("Network error. Please try again.");
+            }
         } else {
             alert("Please enter a valid email address.");
         }

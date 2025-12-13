@@ -1,19 +1,50 @@
+version: '3.8'
 
 services:
+  # 1. Main Django Web Server
   web:
     build: .
-    # This maps your computer's port 8000 to the container's port 8000
     ports:
       - "8000:8000"
-    # This maps your code folder to the container
-    # Changes you make in your IDE will instantly reflect in the container
     volumes:
       - .:/app
-    # Load environment variables
     env_file:
       - .env
+    depends_on:
+      - redis
+    # Run migrations automatically, then start server
     command: >
       sh -c "python manage.py migrate &&
             python manage.py runserver 0.0.0.0:8000"
 
+  # 2. Redis Message Broker (Required for Celery)
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
 
+  # 3. Celery Worker (Processes the email sending tasks)
+  celery:
+    build: .
+    # Starts the worker process
+    command: celery -A bible_quiz_project worker -l info
+    volumes:
+      - .:/app
+    env_file:
+      - .env
+    depends_on:
+      - redis
+      - web
+
+  # 4. Celery Beat (Schedules the daily tasks, e.g., 8 AM)
+  celery-beat:
+    build: .
+    # Starts the scheduler
+    command: celery -A bible_quiz_project beat -l info
+    volumes:
+      - .:/app
+    env_file:
+      - .env
+    depends_on:
+      - redis
+      - web
