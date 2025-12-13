@@ -3,9 +3,9 @@ from celery import Celery
 from celery.schedules import crontab
 
 # Set the default Django settings module for the 'celery' program.
-os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'bible_quiz_project.settings')
+os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'bible_quiz_main.settings')
 
-app = Celery('bible_quiz_project')
+app = Celery('bible_quiz_main')
 
 # Using a string here means the worker doesn't have to serialize
 # the configuration object to child processes.
