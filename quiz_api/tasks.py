@@ -45,3 +45,37 @@ def send_daily_reminders():
 
     logger.info(f"Daily reminder task completed. Sent {count} emails.")
     return f"Sent {count} emails"
+
+@shared_task
+def send_welcome_email(user_email, current_streak):
+    """
+    Sends a personalized welcome email immediately after subscription.
+    Runs asynchronously via Celery.
+    """
+    subject = f"🔒 Your streak is saved! Welcome to Bible Quiz App"
+    
+    # Data to inject into the template
+    context = {
+        'user_email': user_email,
+        'streak_count': current_streak,
+        'app_name': "Bible Quiz App"
+    }
+
+    try:
+        # Render HTML
+        html_message = render_to_string('emails/welcome_email.html', context)
+        # Create Plain Text fallback
+        plain_message = strip_tags(html_message)
+
+        send_mail(
+            subject=subject,
+            message=plain_message,
+            from_email=settings.DEFAULT_FROM_EMAIL,
+            recipient_list=[user_email],
+            html_message=html_message,
+            fail_silently=False,
+        )
+        logger.info(f"Sent welcome email to {user_email}")
+    except Exception as e:
+        logger.error(f"Failed to send welcome email to {user_email}: {str(e)}")
+

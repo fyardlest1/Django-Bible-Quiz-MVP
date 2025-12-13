@@ -43,7 +43,7 @@ INSTALLED_APPS = [
     # Third-party apps
     'rest_framework',
     'corsheaders',       # Step 1: CORS
-    'drf_spectacular',   # Step 2: Documentatio
+    'drf_spectacular',   # Step 2: Documentation
     
     # local apps
     'quiz_api',

@@ -42,7 +42,7 @@ class BibleQuizTests(TestCase):
             q = Question.objects.create(
                 question_text=f'Question {i}',
                 choices=['A', 'B', 'C', 'D'],
-                correct_answer='A', # Always A for simplicity
+                correct_answer='A', # Always A for simplicity in testing
                 category='GTV' 
             )
             self.questions.append(q)
@@ -68,6 +68,7 @@ class BibleQuizTests(TestCase):
         
         # Assert they are identical
         self.assertEqual(first_quiz_ids, second_quiz_ids)
+
 
     def test_submit_scoring_logic(self):
         """
@@ -102,6 +103,7 @@ class BibleQuizTests(TestCase):
         self.assertEqual(response.data['score'], 0)
         self.assertFalse(response.data['results'][0]['is_correct'])
 
+
     def test_real_leaderboard_aggregation(self):
         """
         Verifies that the Leaderboard sums up scores for the same device
@@ -124,7 +126,7 @@ class BibleQuizTests(TestCase):
         
         # The list should be ordered by score descending: C (10), A (8), B (2)
         
-        # Check Rank 1 (User C)
+        # Check Rank 1 (User C) - Name masked as "User user_C..."
         self.assertIn('User user_C', response.data[0]['name']) 
         self.assertEqual(response.data[0]['high_score'], 10)
         
@@ -135,3 +137,9 @@ class BibleQuizTests(TestCase):
         # Check Rank 3 (User B)
         self.assertIn('User user_B', response.data[2]['name']) 
         self.assertEqual(response.data[2]['high_score'], 2)
+
+
+
+# How to Run the Tests
+# Execute the following command in your terminal:
+# python manage.py test quiz_api

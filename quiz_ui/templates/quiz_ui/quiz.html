@@ -92,7 +92,7 @@
             
             <div class="space-y-3">
                 <input type="email" id="user-email" placeholder="name@example.com" 
-                       class="w-full px-4 py-3 rounded-lg border border-gray-300 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 outline-none transition">
+                    class="w-full px-4 py-3 rounded-lg border border-gray-300 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 outline-none transition">
                 
                 <button onclick="saveEmail()" class="w-full bg-indigo-600 text-white font-bold py-3 rounded-lg hover:bg-indigo-700 transition shadow-md">
                     Save My Streak
@@ -172,7 +172,7 @@
         });
 
         setTimeout(() => {
-             nextQuestion();
+            nextQuestion();
         }, 500);
     }
 
@@ -267,8 +267,11 @@
         document.getElementById('email-modal').classList.add('hidden');
     }
 
+    // Inside saveEmail()
     async function saveEmail() {
         const email = document.getElementById('user-email').value;
+        const deviceId = getDeviceId(); // <--- Get ID
+
         if(email && email.includes('@')) {
             try {
                 // Call API to subscribe
@@ -278,7 +281,8 @@
                         'Content-Type': 'application/json',
                         'X-CSRFToken': getCookie('csrftoken')
                     },
-                    body: JSON.stringify({ email: email })
+                    // Send BOTH email and device_id
+                    body: JSON.stringify({ email: email, device_id: deviceId })
                 });
 
                 if (response.ok) {

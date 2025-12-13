@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Welcome to {{app_name}}</title>
+    <!-- Tailwind CSS (via CDN for development/preview) -->
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 font-sans antialiased m-0 p-0">
+    
+    <!-- Main Container -->
+    <div class="max-w-xl mx-auto bg-white rounded-lg shadow-md overflow-hidden mt-10 mb-10 font-sans">
+        
+        <!-- Header -->
+        <div class="bg-indigo-600 py-8 px-4 text-center">
+            <h1 class="text-white text-2xl font-bold tracking-wide m-0">{{app_name}}</h1>
+        </div>
+        
+        <!-- Content Body -->
+        <div class="p-8 text-gray-700 leading-relaxed">
+            
+            <p class="text-xl font-bold text-gray-900 mb-6">You’re officially on the list!</p>
+            
+            <p class="mb-6">Thanks for subscribing. You’ve taken a great step toward building a consistent habit of learning and reflection.</p>
+            
+            <!-- Streak Box -->
+            <div class="bg-indigo-50 border-l-4 border-indigo-600 p-5 mb-8 rounded-r">
+                <div class="flex items-center">
+                    <span class="text-2xl mr-3">🔒</span>
+                    <p class="text-indigo-800 font-bold m-0 text-lg">
+                        Your streak of {{streak_count}} day(s) is saved.
+                    </p>
+                </div>
+            </div>
+            
+            <p class="mb-4 font-semibold text-gray-900">What happens next?</p>
+            <p class="mb-8">We’ll send you a quick, friendly reminder every day with a direct link to the daily challenge. Our goal is to make it easy for you to test your knowledge and grow, one day at a time.</p>
+            
+            <!-- CTA Button -->
+            <div class="text-center mb-6">
+                <a href="https://bible-quiz-mvp.onrender.com/" class="inline-block bg-indigo-600 text-white px-8 py-4 rounded-lg font-bold text-base shadow-md hover:bg-indigo-700 transition duration-300 no-underline">
+                    Play Today's Quiz
+                </a>
+            </div>
+        </div>
+        
+        <!-- Footer -->
+        <div class="bg-gray-50 border-t border-gray-200 p-6 text-center text-xs text-gray-500">
+            <p class="mb-2">You received this email because you signed up for streak protection on {{app_name}}.</p>
+            <p>
+                <a href="#" class="text-indigo-600 hover:text-indigo-800 no-underline">Unsubscribe</a>
+                <span class="mx-2">|</span>
+                <a href="#" class="text-indigo-600 hover:text-indigo-800 no-underline">Privacy Policy</a>
+            </p>
+        </div>
+        
+    </div>
+</body>
+</html>
