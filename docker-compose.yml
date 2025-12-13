@@ -27,7 +27,7 @@ services:
   celery:
     build: .
     # Starts the worker process
-    command: celery -A bible_quiz_project worker -l info
+    command: celery -A bible_quiz_main worker -l info
     volumes:
       - .:/app
     env_file:
@@ -40,7 +40,7 @@ services:
   celery-beat:
     build: .
     # Starts the scheduler
-    command: celery -A bible_quiz_project beat -l info
+    command: celery -A bible_quiz_main beat -l info
     volumes:
       - .:/app
     env_file:
