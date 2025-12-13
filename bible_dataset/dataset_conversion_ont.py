@@ -12,13 +12,27 @@ def create_ont_quiz_seed(input_file, output_file='ont_quiz_data.py', limit=50):
                             If limit > 70, generic verse questions are added to fill the quota.
     """
     
-    NEW_TESTAMENT_BOOKS = {
-        'Matthew', 'Mark', 'Luke', 'John', 'Acts', 'Romans', '1 Corinthians', 
-        '2 Corinthians', 'Galatians', 'Ephesians', 'Philippians', 'Colossians', 
-        '1 Thessalonians', '2 Thessalonians', '1 Timothy', '2 Timothy', 'Titus', 
-        'Philemon', 'Hebrews', 'James', '1 Peter', '2 Peter', '1 John', 
-        '2 John', '3 John', 'Jude', 'Revelation'
-    }
+    # 39 Books of the Old Testament (Roman Numeral Format)
+    OLD_TESTAMENT_BOOKS = [
+        "Genesis", "Exodus", "Leviticus", "Numbers", "Deuteronomy",
+        "Joshua", "Judges", "Ruth", "I Samuel", "II Samuel",
+        "I Kings", "II Kings", "I Chronicles", "II Chronicles", "Ezra",
+        "Nehemiah", "Esther", "Job", "Psalms", "Proverbs",
+        "Ecclesiastes", "Song of Solomon", "Isaiah", "Jeremiah", "Lamentations",
+        "Ezekiel", "Daniel", "Hosea", "Joel", "Amos",
+        "Obadiah", "Jonah", "Micah", "Nahum", "Habakkuk",
+        "Zephaniah", "Haggai", "Zechariah", "Malachi"
+    ]
+
+    # 27 Books of the New Testament (Roman Numeral Format)
+    NEW_TESTAMENT_BOOKS = [
+        "Matthew", "Mark", "Luke", "John", "Acts",
+        "Romans", "I Corinthians", "II Corinthians", "Galatians", "Ephesians",
+        "Philippians", "Colossians", "I Thessalonians", "II Thessalonians", "I Timothy",
+        "II Timothy", "Titus", "Philemon", "Hebrews", "James",
+        "I Peter", "II Peter", "I John", "II John", "III John",
+        "Jude", "Revelation"
+    ]
 
     try:
         with open(input_file, 'r', encoding='utf-8') as f:
@@ -33,9 +47,18 @@ def create_ont_quiz_seed(input_file, output_file='ont_quiz_data.py', limit=50):
     books_data = data.get('books', [])
     for book in books_data:
         book_name = book['name']
-        is_nt = book_name in NEW_TESTAMENT_BOOKS
-        testament = 'New Testament' if is_nt else 'Old Testament'
-        count = '27' if is_nt else '39'
+        
+        # Check against the explicit lists to ensure accuracy with Roman Numerals
+        if book_name in NEW_TESTAMENT_BOOKS:
+            testament = 'New Testament'
+            count = '27'
+        elif book_name in OLD_TESTAMENT_BOOKS:
+            testament = 'Old Testament'
+            count = '39'
+        else:
+            # Fallback: Default to Old Testament if not found in either (unlikely with these lists)
+            testament = 'Old Testament'
+            count = '39'
         
         questions_pool.append({
             'text': f'The Book of {book_name}',
@@ -73,8 +96,12 @@ def create_ont_quiz_seed(input_file, output_file='ont_quiz_data.py', limit=50):
         all_verses = []
         for book in books_data:
             b_name = book['name']
-            is_nt = b_name in NEW_TESTAMENT_BOOKS
-            t_ment = 'New Testament' if is_nt else 'Old Testament'
+            
+            # Logic repeated for verses to ensure consistency
+            if b_name in NEW_TESTAMENT_BOOKS:
+                t_ment = 'New Testament'
+            else:
+                t_ment = 'Old Testament'
             
             for chapter in book['chapters']:
                 for verse in chapter['verses']:
