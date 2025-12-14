@@ -7,13 +7,20 @@ from .views import (
     UserStatsView,
     RecentAttemptsView, 
     LeaderboardView,
-    SubscribeView # Import the new view
+    SubscribeView,
+    GroupCreateView, # Import the new view
 )
 
 urlpatterns = [
     # Feature 1: Daily Random Quiz
     path('daily-quiz/', DailyQuizView.as_view(), name='daily-quiz'),
     path('submit-answers/', SubmitQuizView.as_view(), name='submit-answers'),
+    
+    # MVP Endpoint: Daily Quiz
+    # path('v1/quiz/daily/', DailyQuizView.as_view(), name='daily-quiz-v1'),
+    
+    # MVP Endpoint: Submit
+    # path('v1/quiz/submit/', SubmitQuizView.as_view(), name='submit-quiz-v1'),
 
     # Feature 2: Category Packs
     path('categories/', CategoryListView.as_view(), name='category-list'),
@@ -28,4 +35,7 @@ urlpatterns = [
     
     # Feature 6: Daily Email Reminders
     path('subscribe/', SubscribeView.as_view(), name='subscribe'),
+    
+    # NEW: Group Creation
+    path('groups/create/', GroupCreateView.as_view(), name='group-create'),
 ]

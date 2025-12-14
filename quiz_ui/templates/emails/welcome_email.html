@@ -3,56 +3,54 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Welcome to {{app_name}}</title>
-    <!-- Tailwind CSS (via CDN for development/preview) -->
-    <script src="https://cdn.tailwindcss.com"></script>
+    <title>Welcome to {{ app_name }}</title>
+    <!-- Tailwind CSS (Inline for email clients) -->
+    <style>
+        /* Basic reset for email clients that strip head */
+        body { margin: 0; padding: 0; background-color: #f3f4f6; font-family: sans-serif; }
+    </style>
 </head>
 <body class="bg-gray-100 font-sans antialiased m-0 p-0">
     
-    <!-- Main Container -->
-    <div class="max-w-xl mx-auto bg-white rounded-lg shadow-md overflow-hidden mt-10 mb-10 font-sans">
+    <div style="max-width: 600px; margin: 40px auto; background-color: #ffffff; border-radius: 8px; overflow: hidden; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
         
         <!-- Header -->
-        <div class="bg-indigo-600 py-8 px-4 text-center">
-            <h1 class="text-white text-2xl font-bold tracking-wide m-0">{{app_name}}</h1>
+        <div style="background-color: #4F46E5; padding: 30px; text-align: center;">
+            <h1 style="color: #ffffff; margin: 0; font-size: 24px; font-weight: bold;">{{ app_name }}</h1>
         </div>
         
-        <!-- Content Body -->
-        <div class="p-8 text-gray-700 leading-relaxed">
+        <!-- Content -->
+        <div style="padding: 40px 30px; color: #374151; line-height: 1.6;">
             
-            <p class="text-xl font-bold text-gray-900 mb-6">You’re officially on the list!</p>
+            <h2 style="color: #111827; font-size: 20px; margin-top: 0;">You’re officially on the list! 🚀</h2>
             
-            <p class="mb-6">Thanks for subscribing. You’ve taken a great step toward building a consistent habit of learning and reflection.</p>
+            <p>Thanks for subscribing. You’ve taken a great step toward building a consistent habit of learning and reflection.</p>
             
-            <!-- Streak Box -->
-            <div class="bg-indigo-50 border-l-4 border-indigo-600 p-5 mb-8 rounded-r">
-                <div class="flex items-center">
-                    <span class="text-2xl mr-3">🔒</span>
-                    <p class="text-indigo-800 font-bold m-0 text-lg">
-                        Your streak of {{streak_count}} day(s) is saved.
-                    </p>
-                </div>
+            <!-- Streak Confirmation Box -->
+            <div style="background-color: #EEF2FF; border-left: 4px solid #4F46E5; padding: 15px; margin: 20px 0; border-radius: 4px;">
+                <p style="margin: 0; color: #4338CA; font-weight: bold; font-size: 16px;">
+                    🔒 Streak Confirmed: {{ streak_count }} Day(s) Saved.
+                </p>
             </div>
             
-            <p class="mb-4 font-semibold text-gray-900">What happens next?</p>
-            <p class="mb-8">We’ll send you a quick, friendly reminder every day with a direct link to the daily challenge. Our goal is to make it easy for you to test your knowledge and grow, one day at a time.</p>
-            
-            <!-- CTA Button -->
-            <div class="text-center mb-6">
-                <a href="https://bible-quiz-mvp.onrender.com/" class="inline-block bg-indigo-600 text-white px-8 py-4 rounded-lg font-bold text-base shadow-md hover:bg-indigo-700 transition duration-300 no-underline">
-                    Play Today's Quiz
+            <p>As promised, here is your free guide to help you dive deeper into the Psalms.</p>
+
+            <!-- PDF Download Button -->
+            <div style="text-align: center; margin: 30px 0;">
+                <a href="{{ pdf_url }}" style="background-color: #10B981; color: #ffffff; padding: 14px 28px; text-decoration: none; border-radius: 6px; font-weight: bold; font-size: 16px; display: inline-block;">
+                    📥 Download "Psalms Guide" PDF
                 </a>
             </div>
+            
+            <p><strong>What happens next?</strong></p>
+            <p>We’ll send you a quick, friendly reminder every morning so you never miss a day. Keep that streak alive!</p>
+            
         </div>
         
         <!-- Footer -->
-        <div class="bg-gray-50 border-t border-gray-200 p-6 text-center text-xs text-gray-500">
-            <p class="mb-2">You received this email because you signed up for streak protection on {{app_name}}.</p>
-            <p>
-                <a href="#" class="text-indigo-600 hover:text-indigo-800 no-underline">Unsubscribe</a>
-                <span class="mx-2">|</span>
-                <a href="#" class="text-indigo-600 hover:text-indigo-800 no-underline">Privacy Policy</a>
-            </p>
+        <div style="background-color: #F9FAFB; padding: 20px; text-align: center; font-size: 12px; color: #6B7280; border-top: 1px solid #E5E7EB;">
+            <p style="margin-bottom: 10px;">You received this because you saved your streak on {{ app_name }}.</p>
+            <a href="#" style="color: #4F46E5; text-decoration: none;">Unsubscribe</a>
         </div>
         
     </div>

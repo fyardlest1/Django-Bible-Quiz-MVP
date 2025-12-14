@@ -9,7 +9,7 @@
         <p class="text-gray-600 mb-6">Test your knowledge and keep your streak alive!</p>
         
         <a href="{% url 'quiz_ui:play' %}" 
-           class="block w-full py-4 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-lg shadow transition transform hover:scale-105">
+        class="block w-full py-4 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-lg shadow transition transform hover:scale-105">
             <i class="fa-solid fa-play mr-2"></i> Play Daily Quiz
         </a>
     </div>
@@ -36,15 +36,42 @@
         </div>
     </div>
 
-    <!-- Leaderboard Link -->
-    <a href="{% url 'quiz_ui:leaderboard' %}" 
-        class="block text-center py-3 bg-white border border-gray-300 text-gray-600 font-semibold rounded-lg hover:bg-gray-50">
-        <i class="fa-solid fa-trophy text-yellow-500 mr-2"></i> View Leaderboard
-    </a>
+    <!-- Buttons Grid -->
+    <div class="grid grid-cols-1 gap-4">
+        
+        <!-- NEW: Manage Group Button (Hidden by default) -->
+        <div id="manage-group-container" class="hidden">
+            <a href="#" onclick="showMyGroupCode()"
+               class="block text-center py-3 bg-indigo-50 border border-indigo-200 text-indigo-700 font-semibold rounded-lg hover:bg-indigo-100">
+                <i class="fa-solid fa-users-gear mr-2"></i> Manage My Group
+            </a>
+        </div>
+
+        <a href="{% url 'quiz_ui:leaderboard' %}" 
+           class="block text-center py-3 bg-white border border-gray-300 text-gray-600 font-semibold rounded-lg hover:bg-gray-50">
+            <i class="fa-solid fa-trophy text-yellow-500 mr-2"></i> View Leaderboard
+        </a>
+
+        <a href="{% url 'quiz_ui:teacher_mode' %}" 
+           class="block text-center py-3 bg-gradient-to-r from-purple-500 to-indigo-600 text-white font-semibold rounded-lg shadow hover:opacity-90">
+            <i class="fa-solid fa-church mr-2"></i> Challenge Your Church
+        </a>
+    </div>
 
 </div>
 
 <script>
+    // Helper function to get or create a device ID
+    // Defined here to ensure it exists if base.html script doesn't load first
+    function getDeviceId() {
+        let id = localStorage.getItem('device_id');
+        if (!id) {
+            id = 'user_' + Math.random().toString(36).substr(2, 9);
+            localStorage.setItem('device_id', id);
+        }
+        return id;
+    }
+
     async function loadStats() {
         const deviceId = getDeviceId();
         try {
@@ -61,7 +88,20 @@
         } catch (e) {
             document.getElementById('loading-stats').innerText = "Play your first quiz to see stats!";
         }
+        
+        // --- CHECK FOR GROUP CODE (For Teachers) ---
+        const myGroupCode = localStorage.getItem('my_group_code');
+        if (myGroupCode) {
+            document.getElementById('manage-group-container').classList.remove('hidden');
+        }
     }
+    
+    function showMyGroupCode() {
+        const code = localStorage.getItem('my_group_code');
+        // Simple alert for MVP showing code and link
+        alert(`Your Group Code is: ${code}\n\nShare this link:\n${window.location.origin}/play/?group_id=${code}`);
+    }
+
     loadStats();
 </script>
 {% endblock %}

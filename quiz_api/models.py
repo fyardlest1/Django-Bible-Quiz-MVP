@@ -1,5 +1,6 @@
 from django.db import models
 from django.contrib.postgres.fields import ArrayField # Use ArrayField for simple list of choices, but standard Django choice for category
+from django.utils.crypto import get_random_string
 
 # Define category choices for the Question model
 CATEGORY_CHOICES = [
@@ -97,8 +98,69 @@ class DailyReminderSubscriber(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     last_sent_at = models.DateTimeField(null=True, blank=True)
     is_active = models.BooleanField(default=True, help_text="Uncheck to stop sending emails to this user.")
+    
+    # NEW: Persist the streak so we can recover it or display it in future emails
+    current_streak = models.IntegerField(default=0)
 
     def __str__(self):
         status = "Active" if self.is_active else "Inactive"
         return f"{self.email} ({status})"
 
+
+# --- NEW: Group Viral Loop Models ---
+
+class StudyGroup(models.Model):
+    """
+    Represents a class, youth group, or small group managed by a teacher.
+    Generates a unique, short code for members to join.
+    """
+    name = models.CharField(max_length=100, help_text="e.g. 'Grace Youth - Wednesdays'")
+    group_code = models.CharField(max_length=10, unique=True, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    
+    # In a full auth system, you would link this to a User (Teacher)
+    # teacher = models.ForeignKey(User, ...)
+
+    def save(self, *args, **kwargs):
+        # Auto-generate a unique 6-character code if not present
+        if not self.group_code:
+            self.group_code = get_random_string(length=6).upper()
+        super().save(*args, **kwargs)
+
+    def __str__(self):
+        return f"{self.name} ({self.group_code})"
+
+
+class StudyGroupMember(models.Model):
+    """
+    Tracks anonymous users (device_id) who have 'joined' a group via invite link.
+    """
+    group = models.ForeignKey(StudyGroup, on_delete=models.CASCADE, related_name='members')
+    device_id = models.CharField(max_length=255, db_index=True)
+    joined_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        unique_together = ('group', 'device_id')
+
+    def __str__(self):
+        return f"{self.device_id} in {self.group.name}"
+
+
+# --- NEW: Email Logging ---
+
+class EmailLog(models.Model):
+    """
+    Simple log to track transactional emails and prevent duplicate sends.
+    """
+    EMAIL_TYPES = [
+        ('welcome', 'Day 1: Welcome & PDF'),
+        ('reminder', 'Daily Reminder'),
+    ]
+    
+    subscriber = models.ForeignKey('DailyReminderSubscriber', on_delete=models.CASCADE, related_name='email_logs')
+    email_type = models.CharField(max_length=50, choices=EMAIL_TYPES)
+    sent_at = models.DateTimeField(auto_now_add=True)
+    status = models.CharField(max_length=20, default='sent')
+
+    def __str__(self):
+        return f"{self.email_type} -> {self.subscriber.email} ({self.sent_at.date()})"

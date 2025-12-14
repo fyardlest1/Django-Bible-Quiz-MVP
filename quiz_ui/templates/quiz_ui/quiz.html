@@ -192,17 +192,51 @@
 
         const deviceId = getDeviceId();
         
+        // --- FIX: CAPTURE GROUP ID FROM URL ---
+        const urlParams = new URLSearchParams(window.location.search);
+        const groupId = urlParams.get('group_id'); 
+        // --------------------------------------
+
         try {
             const response = await fetch(`/api/submit-answers/?device_id=${deviceId}`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
-                    'X-CSRFToken': getCookie('csrftoken') // Django CSRF
+                    'X-CSRFToken': getCookie('csrftoken')
                 },
-                body: JSON.stringify(userAnswers)
+                body: JSON.stringify({
+                    // Flatten array if needed or send as is depending on backend expectation. 
+                    // Based on previous views.py, backend expects list of answers.
+                    // But to send group_id, we usually need a dict wrapper or params.
+                    // Your backend view handles group_id via QUERY PARAMS or BODY.
+                    // Let's attach it to the query string to be safe and easiest with list body.
+                    answers: userAnswers, // This might need refactoring if backend expects list root
+                    // Actually, looking at your SubmitQuizView, it handles list data OR dict data.
+                    // Let's send group_id via Query Param to ensure safety with list body.
+                })
             });
             
-            const result = await response.json();
+            // Wait! The previous backend code for SubmitQuizView handles 'group_id' 
+            // via query params: `request.query_params.get('group_id')`.
+            // So we must append it to the fetch URL.
+            
+            let submitUrl = `/api/submit-answers/?device_id=${deviceId}`;
+            if (groupId) {
+                submitUrl += `&group_id=${groupId}`;
+            }
+
+            const responseFixed = await fetch(submitUrl, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': getCookie('csrftoken')
+                },
+                body: JSON.stringify(userAnswers) // Send raw list as expected by serializer(many=True)
+            });
+            
+            const result = await responseFixed.json();
+            
+            // ... (Rest of UI population logic) ...
             
             // Populate Results Table
             const tbody = document.getElementById('results-table-body');
@@ -240,15 +274,10 @@
             document.getElementById('final-score').innerText = result.score;
             document.getElementById('final-total').innerText = result.total_questions;
             
-            // TRIGGER LEAD CAPTURE MODAL LOGIC
-            // Calculate Score Percentage
+            // Trigger Modal Logic
             const percentage = (result.score / result.total_questions) * 100;
-            
-            // Wait 1.5 seconds, then check logic
             setTimeout(() => {
                 const hasSavedEmail = localStorage.getItem('email_saved');
-                
-                // Condition: Not already subscribed AND Score >= 60%
                 if (!hasSavedEmail && percentage >= 60) {
                     document.getElementById('email-modal').classList.remove('hidden');
                 }

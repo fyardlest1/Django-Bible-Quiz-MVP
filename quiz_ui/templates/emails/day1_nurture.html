@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Your Free Gift</title>
+    <style>
+        body { background-color: #f3f4f6; font-family: sans-serif; margin: 0; padding: 0; }
+        .container { max-width: 600px; margin: 20px auto; background: #ffffff; border-radius: 8px; overflow: hidden; }
+        .header { background-color: #4F46E5; padding: 20px; text-align: center; color: white; font-weight: bold; font-size: 24px; }
+        .content { padding: 30px; color: #333; line-height: 1.6; }
+        .btn { display: inline-block; background-color: #10B981; color: white; padding: 12px 24px; text-decoration: none; border-radius: 5px; font-weight: bold; margin: 20px 0; }
+        .footer { background-color: #f9fafb; padding: 15px; text-align: center; font-size: 12px; color: #666; }
+        .streak-box { background-color: #EEF2FF; border-left: 4px solid #4F46E5; padding: 10px; margin: 15px 0; color: #4338CA; font-weight: bold; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            {{ app_name }}
+        </div>
+        <div class="content">
+            <h2>You’re officially on the list! 🚀</h2>
+            <p>Thanks for subscribing. We have secured your progress.</p>
+            
+            <div class="streak-box">
+                🔒 Streak Confirmed: {{ streak_count }} Day(s) Saved.
+            </div>
+            
+            <p>As promised, here is your free guide to help you dive deeper into the scriptures.</p>
+            
+            <div style="text-align: center;">
+                <a href="{{ pdf_url }}" class="btn">
+                    📥 Download "Psalms Guide" PDF
+                </a>
+            </div>
+            
+            <p><strong>What happens next?</strong><br>
+            We’ll send you a quick, friendly reminder every morning so you never miss a day. Consistency is key!</p>
+        </div>
+        <div class="footer">
+            <p>You received this because you saved your streak on {{ app_name }}.</p>
+            <a href="#" style="color: #4F46E5;">Unsubscribe</a>
+        </div>
+    </div>
+</body>
+</html>

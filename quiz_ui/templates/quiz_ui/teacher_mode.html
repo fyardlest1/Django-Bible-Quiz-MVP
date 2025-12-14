@@ -1,0 +1,100 @@
+{% extends 'quiz_ui/base.html' %}
+
+{% block content %}
+<div class="bg-white">
+    <!-- Hero Section -->
+    <div class="relative isolate px-6 pt-14 lg:px-8">
+        <!-- Background Decoration (Optional Tailwind Blur) -->
+        <div class="absolute inset-x-0 -top-40 -z-10 transform-gpu overflow-hidden blur-3xl sm:-top-80" aria-hidden="true">
+            <div class="relative left-[calc(50%-11rem)] aspect-[1155/678] w-[36.125rem] -translate-x-1/2 rotate-[30deg] bg-gradient-to-tr from-[#ff80b5] to-[#9089fc] opacity-30 sm:left-[calc(50%-30rem)] sm:w-[72.1875rem]" style="clip-path: polygon(74.1% 44.1%, 100% 61.6%, 97.5% 26.9%, 85.5% 0.1%, 80.7% 2%, 72.5% 32.5%, 60.2% 62.4%, 52.4% 68.1%, 47.5% 58.3%, 45.2% 34.5%, 27.5% 76.7%, 0.1% 64.9%, 17.9% 100%, 27.6% 76.8%, 76.1% 97.7%, 74.1% 44.1%)"></div>
+        </div>
+
+        <div class="mx-auto max-w-2xl py-12 sm:py-24 lg:py-24">
+            <div class="text-center">
+                <span class="inline-block py-1 px-3 rounded-full bg-indigo-100 text-indigo-700 text-sm font-semibold mb-4 border border-indigo-200">
+                    For Pastors, Youth Leaders & Teachers
+                </span>
+                <h1 class="text-4xl font-bold tracking-tight text-gray-900 sm:text-6xl">
+                    Spark Revival with a <br/><span class="text-indigo-600">Church Challenge</span>
+                </h1>
+                <p class="mt-6 text-lg leading-8 text-gray-600">
+                    Turn scripture reading into a fun, community-building habit. Create a private leaderboard for your group in seconds and watch engagement grow daily.
+                </p>
+                <div class="mt-10 flex items-center justify-center gap-x-6">
+                    <!-- CTA Button with Logic -->
+                    <button onclick="handleTeacherCTA()" 
+                    class="rounded-md bg-indigo-600 px-6 py-3 text-lg font-semibold text-white shadow-xl hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600 transition-all hover:scale-105">
+                        Create Your Group
+                    </button>
+                    <a href="#how-it-works" class="text-sm font-semibold leading-6 text-gray-900">How it works <span aria-hidden="true">→</span></a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Value Proposition Grid -->
+    <div id="how-it-works" class="py-16 bg-gray-50">
+        <div class="mx-auto max-w-7xl px-6 lg:px-8">
+            <div class="mx-auto max-w-2xl lg:text-center mb-16">
+                <h2 class="text-base font-semibold leading-7 text-indigo-600">Simple Setup</h2>
+                <p class="mt-2 text-3xl font-bold tracking-tight text-gray-900 sm:text-4xl">Engage your group in 3 steps</p>
+            </div>
+            
+            <div class="grid max-w-xl grid-cols-1 gap-x-8 gap-y-12 lg:max-w-none lg:grid-cols-3">
+                
+                <!-- Step 1 -->
+                <div class="flex flex-col items-center text-center bg-white p-8 rounded-2xl shadow-sm border border-gray-100 h-full">
+                    <div class="flex h-14 w-14 items-center justify-center rounded-xl bg-indigo-600 text-white mb-6">
+                        <i class="fa-solid fa-users-rectangle text-2xl"></i>
+                    </div>
+                    <h3 class="text-xl font-bold text-gray-900">1. Create Group</h3>
+                    <p class="mt-4 text-base text-gray-600 flex-grow">
+                        Generate a unique invite code (e.g., <span class="font-mono bg-gray-100 px-1 rounded text-indigo-600">YOUTH24</span>) instantly. No technical skills required.
+                    </p>
+                </div>
+
+                <!-- Step 2 -->
+                <div class="flex flex-col items-center text-center bg-white p-8 rounded-2xl shadow-sm border border-gray-100 h-full">
+                    <div class="flex h-14 w-14 items-center justify-center rounded-xl bg-indigo-600 text-white mb-6">
+                        <i class="fa-solid fa-mobile-screen text-2xl"></i>
+                    </div>
+                    <h3 class="text-xl font-bold text-gray-900">2. Share Invite</h3>
+                    <p class="mt-4 text-base text-gray-600 flex-grow">
+                        Share your custom link via WhatsApp or email. Members play the daily quiz and are automatically added to your board.
+                    </p>
+                </div>
+
+                <!-- Step 3 -->
+                <div class="flex flex-col items-center text-center bg-white p-8 rounded-2xl shadow-sm border border-gray-100 h-full">
+                    <div class="flex h-14 w-14 items-center justify-center rounded-xl bg-indigo-600 text-white mb-6">
+                        <i class="fa-solid fa-trophy text-2xl"></i>
+                    </div>
+                    <h3 class="text-xl font-bold text-gray-900">3. Track & Celebrate</h3>
+                    <p class="mt-4 text-base text-gray-600 flex-grow">
+                        Watch streaks grow on your private leaderboard. Perfect for weekly shout-outs during service.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    /**
+     * handleTeacherCTA
+     * Determines routing based on 'Authentication' status.
+     * In this MVP, authentication is proxied by the presence of 'email_saved' in localStorage.
+     */
+    function handleTeacherCTA() {
+        const isRegistered = localStorage.getItem('email_saved');
+        
+        if (isRegistered) {
+            // User has already subscribed/registered -> Go directly to Group Creation
+            window.location.href = "{% url 'quiz_ui:create_group' %}";
+        } else {
+            // User is anonymous -> Must register first
+            window.location.href = "{% url 'quiz_ui:register' %}";
+        }
+    }
+</script>
+{% endblock %}

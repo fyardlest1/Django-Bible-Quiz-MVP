@@ -2,14 +2,14 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status, generics, pagination
 from rest_framework.exceptions import NotFound
-from rest_framework.throttling import ScopedRateThrottle # Import for throttling
+from rest_framework.throttling import ScopedRateThrottle
 from django.utils.text import slugify
 from django.utils import timezone
 from datetime import timedelta
 from django.db.models import Avg, Sum, Count
 from django.core.cache import cache
 
-from .models import Question, QuizAttempt, Category, LeaderboardEntry, CATEGORY_CHOICES
+from .models import Question, QuizAttempt, Category, LeaderboardEntry, StudyGroup, CATEGORY_CHOICES
 from .serializers import (
     QuestionSerializer, 
     AnswerSubmissionSerializer, 
@@ -18,6 +18,7 @@ from .serializers import (
     LeaderboardEntrySerializer,
     UserStatsSerializer,
     SubscriberSerializer,
+    StudyGroupSerializer
 )
 
 # --- Pagination Configuration ---
@@ -30,11 +31,20 @@ class QuizPackPagination(pagination.PageNumberPagination):
 # --- Feature 1: Daily Random Quiz ---
 
 class DailyQuizView(APIView):
+    """
+    GET /api/v1/quiz/daily/
+    Returns the daily 7 questions.
+    """
     QUIZ_CACHE_KEY = "daily_quiz_questions"
     QUIZ_SIZE = 7 
     CACHE_TIMEOUT = 60 * 60 * 24 
 
     def get(self, request):
+        # Use the ID from middleware for logging (optional)
+        # Note: request.guest_id comes from AnonymousSessionMiddleware
+        guest_id = getattr(request, 'guest_id', 'unknown')
+        print(f"Serving Daily Quiz to Guest: {guest_id}")
+
         questions_data = cache.get(self.QUIZ_CACHE_KEY)
         if questions_data is not None:
             return Response(questions_data)
@@ -49,23 +59,33 @@ class DailyQuizView(APIView):
                             status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
         questions_data = QuestionSerializer(random_questions, many=True).data
+        
+        # Retry logic if serialization returned empty (edge case)
+        if not questions_data:
+            random_questions = Question.objects.all().order_by('?')[:self.QUIZ_SIZE]
+            questions_data = QuestionSerializer(random_questions, many=True).data
+        
+        # Cache the result
         question_ids = [q['id'] for q in questions_data]
         cache.set(f"{self.QUIZ_CACHE_KEY}_ids", question_ids, self.CACHE_TIMEOUT)
         cache.set(self.QUIZ_CACHE_KEY, questions_data, self.CACHE_TIMEOUT)
         
         return Response(questions_data)
 
+
 class SubmitQuizView(APIView):
     """
-    POST: Submits answers.
+    POST /api/v1/quiz/submit/
+    Submits answers and links them to the anonymous cookie ID.
     """
     def post(self, request):
-        # 1. Capture tracking IDs
-        device_id = request.query_params.get('device_id', None)
+        # 1. Use the secure cookie ID as the device_id
+        # Ensure middleware is active, fallback to None if not
+        device_id = getattr(request, 'guest_id', None)
         
         # FIX: Safely check for group_id. 
         # Only try .get() if request.data is a dictionary. 
-        # If it's a list (like in your tests), rely on query_params.
+        # If it's a list (like in tests), rely on query_params.
         group_id = request.query_params.get('group_id', None)
         if isinstance(request.data, dict):
             group_id = request.data.get('group_id') or group_id
@@ -83,6 +103,7 @@ class SubmitQuizView(APIView):
         processed_submissions = [item for item in validated_data if item['question_id'] in questions]
         total_questions = len(processed_submissions)
 
+        # Iterate request.data (answers), check against DB, calculate score...
         for submission in processed_submissions:
             q_id = submission['question_id']
             selected_answer = submission['selected_answer']
@@ -122,10 +143,11 @@ class SubmitQuizView(APIView):
                 else:
                     new_streak = 1
 
+        # Save Attempt linked to Cookie ID
         attempt = QuizAttempt.objects.create(
+            device_id=device_id, # <--- Using Cookie ID
             score=score,
-            total_questions=total_questions,
-            device_id=device_id,
+            total_questions=total_questions, # Fixed variable name 'total' -> 'total_questions'
             group_id=group_id,
             current_streak=new_streak
         )
@@ -165,18 +187,13 @@ class UserStatsView(APIView):
         
         last_attempt = attempts.order_by('-timestamp').first()
         current_streak = 0
-        
         if last_attempt:
             last_date = last_attempt.timestamp.date()
             today = timezone.now().date()
             if last_date >= today - timedelta(days=1):
                 current_streak = last_attempt.current_streak
-        
-        category_breakdown = {
-            "GTV": "N/A", 
-            "WST": "N/A",
-            "ONT": "N/A"
-        }
+
+        category_breakdown = { "GTV": "N/A", "WST": "N/A" } 
 
         data = {
             "total_quizzes": stats['total_quizzes'],
@@ -206,7 +223,6 @@ class QuizPackQuestionsView(generics.ListAPIView):
 
         if not category_code:
             raise NotFound(f"Category '{category_slug}' not found.")
-            
         return Question.objects.filter(category=category_code).order_by('?')
 
 class RecentAttemptsView(generics.ListAPIView):
@@ -231,7 +247,6 @@ class LeaderboardView(APIView):
         for entry in leaderboard_data:
             d_id = entry['device_id']
             display_name = f"User {d_id[:6]}..." if d_id else "Anonymous"
-            
             results.append({
                 "name": display_name,
                 "high_score": entry['total_score'],
@@ -256,8 +271,24 @@ class SubscribeView(APIView):
         if serializer.is_valid():
             serializer.save()
             return Response(
-                {"message": "Successfully subscribed to daily reminders!"},
+                {"message": "Successfully subscribed and streak saved!"},
                 status=status.HTTP_201_CREATED
             )
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+# --- Feature: Group Creation (Core Viral Loop) ---
+
+class GroupCreateView(generics.CreateAPIView):
+    """
+    POST /api/groups/create/
+    Allows a teacher/premium user to create a new group.
+    Returns the unique Group ID and an Invite Link.
+    """
+    queryset = StudyGroup.objects.all()
+    serializer_class = StudyGroupSerializer
+    
+    # Use throttling to prevent spam creation of groups
+    throttle_classes = [ScopedRateThrottle]
+    throttle_scope = 'subscribe' # Re-using strict scope for creation events
 
